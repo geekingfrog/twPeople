@@ -1,0 +1,11 @@
+{
+  "name": "celebrities",
+  "version": "0.1.0",
+  "description": "toy project to learn node",
+  "dependencies": {
+    "htmlparser": ">=1.7.0",
+    "underscore": ">=1.4.4",
+    "async": ">=0.2.5",
+    "cheerio": ">=0.10.7"
+  }
+}
