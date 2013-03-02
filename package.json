@@ -6,6 +6,9 @@
     "htmlparser": ">=1.7.0",
     "underscore": ">=1.4.4",
     "async": ">=0.2.5",
-    "cheerio": ">=0.10.7"
+    "cheerio": ">=0.10.7",
+    "winston": ">=0.6.2",
+    "mongoose": "=3.5.7",
+    "mongodb": ">=1.2.13"
   }
 }

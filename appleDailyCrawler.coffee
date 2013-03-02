@@ -4,6 +4,15 @@ sys = require 'sys'
 async = require 'async'
 url = require 'url'
 cheerio = require 'cheerio'
+logger = (require './logconfig').logger
+mongo = require 'mongodb'
+Server = mongo.Server
+Db = mongo.Db
+BSON = mongo.BSONPure
+server = new Server 'localhost', 27017, {auto_reconnect: true}
+db = new Db 'articles', server
+
+
 appleDailyCrawler = ->
 
   hostname = "www.appledaily.com.tw"
@@ -28,7 +37,8 @@ appleDailyCrawler = ->
       res.on 'data', (chunk) -> body += chunk
       res.on 'end', ->
         cb.call(this, body)
-    req.on 'error', (err) -> console.log "got error: ", err
+        req.on 'error', (err) ->
+          logger.error 'got error when executeGet with options: '+JSON.stringify(options), err
 
   getLinksFromHtml = (raw) ->
     $ = cheerio.load(raw)
@@ -47,7 +57,7 @@ appleDailyCrawler = ->
     return _.uniq(properLinks)
       
   getContentFromLink = (link, cb) ->
-    console.log 'get content for: ', link
+    # logger.debug 'get content for: ', link
     parsed = url.parse(link)
     options =
       hostname: parsed.hostname
@@ -58,31 +68,18 @@ appleDailyCrawler = ->
       content = ''
       $('.articulum p,span,h2').each ->
         content += $(this).text()
+      return content
       
-    chainedCb = ->
-      res = getContent.call(this,arguments)
+    chainedCb = (raw) ->
+      res = getContent(raw)
       cb(res) if cb?
     executeGet options, chainedCb
 
 
-  ######################################################################  
-  # find all links on the given node and its descendants
-  # return an array of links' data (empty array if no links are found)
-  ######################################################################  
-  findLinks = (o) ->
-    return [] if !o or _.isEmpty(o)
-    link = []
-    if o.type is 'tag' and o.name is 'a'
-      link = [o.data]
-    childrenLinks = []
-    children = o.children or []
-    # if o.children
-    childrenLinks = _.flatten(children.map (child) -> findLinks(child))
-    return link.concat childrenLinks
-
   return {
     collectLinks: collectLinks
     getContentFromLink: getContentFromLink
+    hostname: hostname
   }
 
 testDate = '20130220'
@@ -90,11 +87,16 @@ crawl = new appleDailyCrawler()
 crawl.collectLinks(testDate, (links) ->
   fullContent = ''
   start = new Date().getTime()
-  async.eachLimit links, 5, (item, cb) ->
+  async.eachLimit links.slice(0, 1), 5, (item, cb) ->
     errCb = (res) ->
+      logger.debug "res from getContenFromLink: ", item
+      console.log crawl.hostname
+      # console.log sys.inspect(res)
       if res then cb() else cb(res)
     crawl.getContentFromLink(item, errCb)
   , (err) ->
     end = new Date().getTime()
-    console.log "complete all the fetching for #{testDate} in #{end-start}"
+    logger.info "complete all the fetching for #{testDate} in #{end-start}"
 )
+
+
