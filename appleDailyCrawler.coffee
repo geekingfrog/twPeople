@@ -7,6 +7,7 @@ cheerio = require 'cheerio'
 logger = (require './logconfig')
 twPeople = require './twPeople'
 Q = require 'q'
+moment = require 'moment'
 
 
 appleDailyCrawler = ->
@@ -116,7 +117,7 @@ appleDailyCrawler = ->
     linksPromise = getLinksForDate(date)
     linksPromise.then (links) ->
       articles = []
-      async.eachLimit(links, 5, (link, cb) ->
+      async.eachLimit(links.slice(0,5), 5, (link, cb) ->
         archive = Q.defer()
         getContentFromLink(link).then( (content) ->
           logger.debug "getting content for link: #{link}"
@@ -174,4 +175,6 @@ archives.then (articles) ->
   logger.debug 'parsing completed: '
   logger.debug sys.inspect(res)
 archives.fail (err) -> logger.error err
+
+logger.debug 'tomorrow: ', moment(testDate,'YYYYMMDD').add('d', 1).format('YYYYMMDD')
 
