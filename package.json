@@ -9,6 +9,8 @@
     "cheerio": ">=0.10.7",
     "winston": ">=0.6.2",
     "mongoose": "=3.5.7",
-    "mongodb": ">=1.2.13"
+    "mongodb": ">=1.2.13",
+    "cloneextend": ">=0.0.3",
+    "q": ">=0.9.0"
   }
 }

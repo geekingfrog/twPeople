@@ -17,5 +17,4 @@ config=
     error: 'red'
 
 logger = new (winston.Logger)(config)
-exports.logger = logger
-
+module.exports = exports = logger
