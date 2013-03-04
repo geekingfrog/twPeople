@@ -10,7 +10,9 @@ Q = require 'q'
 moment = require 'moment'
 
 
-appleDailyCrawler = ->
+AppleDailyCrawler = ->
+  if not (this instanceof AppleDailyCrawler)
+    return new AppleDailyCrawler()
 
   hostname = "www.appledaily.com.tw"
 
@@ -42,20 +44,30 @@ appleDailyCrawler = ->
   #   headers: the received headers
   #   body: the complete body of the response
   # reject if the error code is not 200
-  executeGet = (options, cb) ->
+  # if there is a network error, will retry 2 more times before giving up
+  executeGet = (options) ->
     def = Q.defer()
-    req = http.get options, (res) ->
-      body = ""
-      res.setEncoding 'utf8'
-      res.on 'data', (chunk) -> body += chunk
-      res.on 'end', ->
-        # cb.call(this, body)
-        def.resolve {headers: res.headers, body: body}
-        return
+    executeWithRetry = (retry = 0) ->
+      req = http.get options, (res) ->
+        body = ""
+        res.setEncoding 'utf8'
+        res.on 'data', (chunk) -> return body += chunk
+        res.on 'end', ->
+          return def.resolve {headers: res.headers, body: body}
       req.on 'error', (err) ->
-        logger.error 'got error when executeGet with options: '+JSON.stringify(options), err
-        def.reject err
+        if retry < 3
+          retry++
+          logger.warn "got an error with #{JSON.stringify(options)}: #{sys.inspect err}\n
+          retrying (#{retry}/3 attempts)"
+          return executeWithRetry(retry)
+        else
+          logger.error "got error when executeGet with options:
+            #{JSON.stringify(options)}, #{sys.inspect err}"
+          return def.reject(err)
+    executeWithRetry(0)
     return def.promise
+
+
 
   # parse the body and returns an array of links to archives
   getLinksFromHtml = (raw) ->
@@ -113,14 +125,15 @@ appleDailyCrawler = ->
   # resolve to an array of article for the given date
   # reject if any http.get error in the process
   getArticlesForDate = (date) ->
+    logger.info "getting articles for the date: ", date
     articlesDef = Q.defer()
     linksPromise = getLinksForDate(date)
     linksPromise.then (links) ->
+      logger.debug "got #{links.length} links for #{date}"
       articles = []
-      async.eachLimit(links.slice(0,5), 5, (link, cb) ->
+      async.eachLimit(links, 5, (link, cb) ->
         archive = Q.defer()
         getContentFromLink(link).then( (content) ->
-          logger.debug "getting content for link: #{link}"
           articles.push(content)
           cb()
         , cb)
@@ -136,45 +149,10 @@ appleDailyCrawler = ->
 
 
   return {
-    # getLinks: getLinks
     getLinksForDate: getLinksForDate
     getContentFromLink: getContentFromLink
     getArticlesForDate: getArticlesForDate
     hostname: hostname
   }
 
-
-# returns an array of object representing the people present in the articles
-# each object has the following keys:
-#  name
-#  english
-#  field
-#  count: the number of article with this person
-huntForPeople = (articles) ->
-  occ = []
-  logger.debug "looking for #{twPeople.length} people"
-  twPeople.map (person) ->
-    r = new RegExp(person.name, 'gi')
-    count = 0
-    articles.forEach (article) ->
-      if r.test(article)
-        count++
-        logger.debug "got a match for ", person
-    if count
-      tmp = _.clone person # shallow copy ! (enough here)
-      tmp.count = count
-      occ.push tmp
-  return occ
-
-testDate = '20130302'
-crawl = new appleDailyCrawler()
-archives = crawl.getArticlesForDate(testDate)
-archives.then (articles) ->
-  logger.debug articles.length
-  res = huntForPeople articles
-  logger.debug 'parsing completed: '
-  logger.debug sys.inspect(res)
-archives.fail (err) -> logger.error err
-
-logger.debug 'tomorrow: ', moment(testDate,'YYYYMMDD').add('d', 1).format('YYYYMMDD')
-
+module.exports = exports = AppleDailyCrawler
