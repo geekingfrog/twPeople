@@ -1,6 +1,6 @@
 #source: http://en.wikipedia.org/wiki/List_of_Taiwanese_people
 
-logger = require "./logconfig"
+_ = require 'underscore'
 twPeople = []
 
 # actors and actresses
@@ -33,7 +33,7 @@ actors =[
 ]
 
 actors.map (el) ->
-  el.field = "actor/actress"
+  el.field =['actor/actress']
   return el
 twPeople = twPeople.concat actors
 
@@ -46,7 +46,7 @@ models =[
 ]
 
 models.map (el) ->
-  el.field = 'model'
+  el.field =['model']
   return el
 twPeople = twPeople.concat models
 
@@ -107,7 +107,7 @@ singers =[
 ]
 
 singers.map (el) ->
-  el.field = 'singer'
+  el.field =['singer']
   return el
 twPeople = twPeople.concat singers
 
@@ -125,7 +125,7 @@ musicians = [
     {english: 'Lín Qīnghuì', name: '林青慧'}
 ]
 musicians.map (el) ->
-  el.field = 'musician'
+  el.field =['musician']
   return el
 twPeople = twPeople.concat musicians
 
@@ -143,7 +143,7 @@ artists = [
 ]
 
 artists.map (el) ->
-  el.field = 'artist'
+  el.field =['artist']
   return
 
 twPeople = twPeople.concat artists
@@ -155,7 +155,7 @@ filmMakers =[
 ]
 
 filmMakers.map (el) ->
-  el.field = 'film maker'
+  el.field =['film maker']
   return el
 twPeople = twPeople.concat filmMakers
 
@@ -184,9 +184,22 @@ politicians =[
 ]
 
 politicians.map (el) ->
-  el.field = 'politician'
+  el.field =['politician']
   return el
 twPeople = twPeople.concat politicians
 
-module.exports = exports = twPeople
+
+# check for people with multiple fields and merge them
+uniq = {}
+for person in twPeople
+  if uniq[person.name]
+    uniq[person.name].field = uniq[person.name].field.concat(person.field)
+  else
+    uniq[person.name] = _.extend({}, person)
+
+final = []
+for name, person of uniq
+  final.push person
+
+module.exports = exports = final
 

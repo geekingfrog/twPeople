@@ -1,18 +1,17 @@
-logger = require './logconfig'
+logger = require '../logConfig'
 sys = require 'sys'
-Q = require 'q'
 AppleDailyCrawler = require './appleDailyCrawler'
-Dao = require './dao'
+Dao = require '../mongo/dao'
 moment = require 'moment'
 async = require 'async'
 _ = require 'underscore'
+argv = require('optimist').argv
 
 dao = new Dao()
-getPeople = ->
-  peopleDef = Q.defer()
-  collection = dao.getDb().collection('people').find().toArray (err, people) ->
-    if err then peopleDef.reject(err) else peopleDef.resolve(people)
-  return peopleDef.promise
+
+if argv.h
+  console.log "supply start date and end date with --start and --end, the format is YYYYMMDD"
+  return
 
 # returns an array of object representing the people present in the articles
 # each object has the following keys:
@@ -36,30 +35,35 @@ huntForPeople = (people, articles) ->
     return
   return occ
 
-
-
-dao.connect().then(dao.syncDb).then(getPeople).then (people) ->
+async.series([dao.connect, dao.syncDb, dao.findPeople], (err, results) ->
+  [db, __, people] = results
   startTime = Date.now()
-  start = moment()
-  end = moment('20030502', 'YYYYMMDD')
+  start = moment(''+argv.start,'YYYYMMDD')
+  end = moment(''+argv.end, 'YYYYMMDD')
+  # end = start.clone().subtract('d', 5)
+  # end = moment('20030502', 'YYYYMMDD')
 
-  console.log 'end: ', end.format('YYYYMMDD')
   current = moment(start)
   dates = []
   while current.isAfter(end) or current.isSame(end)
-    current.subtract('d',1)
     dates.push current.format('YYYYMMDD')
+    current.subtract('d',1)
 
+  format = 'YYYYMMDD'
+  logger.info "going after #{dates.length} dates
+  from #{start.format(format)} to #{end.format(format)}"
+  totalPeople = 0
   async.eachLimit(dates, 1, (date, cb) ->
     crawler = new AppleDailyCrawler()
     startCrawl = new Date().getTime()
-    archives = crawler.getArticlesForDate(date)
-    archives.fail -> logger.error arguments
-    archives.then (articles) ->
+    crawler.getArticlesForDate(date, (err, articles) ->
+      if err
+        logger.error "error for date #{date}, #{err}"
+        return cb()
       timeCrawl = (new Date().getTime())-startCrawl
       logger.info "got #{articles.length} articles for #{date} in #{timeCrawl} ms"
       parsed = huntForPeople(people, articles)
-      logger.debug "got #{parsed.length} interesting articles"
+      logger.debug "got #{parsed.length} people for this date"
       toSave = parsed.map (el) ->
         o =
           host: crawler.hostname
@@ -67,23 +71,17 @@ dao.connect().then(dao.syncDb).then(getPeople).then (people) ->
           personId: el._id
           count: el.count
         return o
+      totalPeople += toSave.length
       collection = dao.getDb().collection('parsedArticle')
-      saved = toSave.map (el) ->
-        elDef = Q.defer()
-        collection.update({date: el.date, personId: el.personId}
-        , {$set: el}, {w:1, upsert: true}, (err) ->
-          if err then elDef.reject(err) else elDef.resolve()
-        )
-        return elDef.promise
-      Q.all(saved).then((-> return cb()),(-> console.log 'some errors...'; return cb(1)))
-
-      
+      dao.upsertResults(toSave, cb)
+    )
   , (err) ->
     if err
       logger.error err
     else
       totalTime = Date.now() - startTime
-      logger.info "scrapping completed in #{totalTime} ms"
+      logger.info "scrapping completed in #{totalTime} ms, got #{totalPeople} people"
       process.exit(0)
   )
+)
 

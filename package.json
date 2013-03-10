@@ -3,15 +3,13 @@
   "version": "0.1.0",
   "description": "toy project to learn node",
   "dependencies": {
-    "htmlparser": ">=1.7.0",
     "underscore": ">=1.4.4",
     "async": ">=0.2.5",
     "cheerio": ">=0.10.7",
     "winston": ">=0.6.2",
-    "mongoose": "=3.5.7",
-    "mongodb": ">=1.2.13",
-    "cloneextend": ">=0.0.3",
-    "q": ">=0.9.0",
-    "moment": "=2.0.0"
+    "mongodb": "1.2.x",
+    "moment": "2.0.0",
+    "express": "3.x",
+    "optimist": "0.3.x"
   }
 }

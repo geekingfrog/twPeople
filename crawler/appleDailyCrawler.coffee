@@ -4,9 +4,7 @@ sys = require 'sys'
 async = require 'async'
 url = require 'url'
 cheerio = require 'cheerio'
-logger = (require './logconfig')
-twPeople = require './twPeople'
-Q = require 'q'
+logger = (require '../logConfig')
 moment = require 'moment'
 
 
@@ -18,42 +16,32 @@ AppleDailyCrawler = ->
 
   date = null
 
-  # returns a promise
-  # resolve to an array of url which point to the articles for the given date
-  # reject if there is an IO error from the http.get
+  # return an array of url which point to the articles for the given date
   getLinksForDate = (_date, cb) ->
-    def = Q.defer()
     date = _date
     options =
       hostname: hostname
       path: "/appledaily/archive/#{_date}"
+    executeGet(options, (err, {headers, body}) ->
+      if err
+        return cb(err)
+      links = getLinksFromHtml(body)
+      cb(err, links)
+    )
 
-    # chainedCb = ->
-    #   res = getLinksFromHtml.apply(this, arguments)
-    #   cb(res)
-    # executeGet(options, chainedCb)
-    tocDef = executeGet(options)
-    tocDef.then(({body}) ->
-      return getLinksFromHtml(body)
-    ).then (links) -> def.resolve(links)
-    tocDef.fail (err) -> def.reject(err)
-    return def.promise
-
-  # returns a promise
-  # resolve to
+  # returns an object:
   #   headers: the received headers
   #   body: the complete body of the response
-  # reject if the error code is not 200
+  # error if the response code is not 200
   # if there is a network error, will retry 2 more times before giving up
-  executeGet = (options) ->
-    def = Q.defer()
-    executeWithRetry = (retry = 0) ->
+  executeGet = (options, cb = ->) ->
+    executeWithRetry = (retry) ->
       req = http.get options, (res) ->
         body = ""
         res.setEncoding 'utf8'
         res.on 'data', (chunk) -> return body += chunk
         res.on 'end', ->
-          return def.resolve {headers: res.headers, body: body}
+          return cb(null, {headers: res.headers, body: body})
       req.on 'error', (err) ->
         if retry < 3
           retry++
@@ -63,21 +51,21 @@ AppleDailyCrawler = ->
         else
           logger.error "got error when executeGet with options:
             #{JSON.stringify(options)}, #{sys.inspect err}"
-          return def.reject(err)
+          return cb(err)
     executeWithRetry(0)
-    return def.promise
+    return
 
 
 
   # parse the body and returns an array of links to archives
-  getLinksFromHtml = (raw) ->
-    $ = cheerio.load(raw)
+  getLinksFromHtml = (body) ->
+    $ = cheerio.load(body)
     links = []
     $('a').each ->
       href = $(this).attr 'href'
       links.push href if href
-
-    processLinks links
+    processed = processLinks links
+    return processed
 
   # transform relative links into full url
   # eg:
@@ -90,9 +78,8 @@ AppleDailyCrawler = ->
       return 'http://'+hostname+el
     return _.uniq(properLinks)
       
-  # returns a promise
-  # resolve to the html of the article for a given link
-  getContentFromLink = (link) ->
+  # returns the html of the article for a given link
+  getContentFromLink = (link, cb = ->) ->
     parsed = url.parse(link)
     options =
       hostname: parsed.hostname
@@ -101,51 +88,38 @@ AppleDailyCrawler = ->
     getContent = (body) ->
       $ = cheerio.load(body)
       content = ''
-      $('.articulum').find('p,span,h2').each ->
-        content += $(this).text()
+      $('.articulum').find('p,span,h2').each -> content += $(this).text()
       return content
       
-    # chainedCb = (raw) ->
-    #   res = getContent(raw)
-    #   cb(res) if cb?
-    # executeGet options, chainedCb
+    executeGet(options, (err, {headers, body}) ->
+      if err
+        return cb(err)
+      content = getContent(body)
+      cb(null, content)
+    )
+    return
 
-    contentDef = Q.defer()
-    archivePage = executeGet(options)
-    archivePage.then ({body}) ->
-      content = getContent body
-      contentDef.resolve(content)
-    archivePage.fail (err) -> contentDef.reject(err)
-    return contentDef.promise
-
-  # returns a promise
   # It first fetch the list of articles for the given date
   # and then get all of them (5 in parallel)
   #
-  # resolve to an array of article for the given date
+  # returns an array of article for the given date
   # reject if any http.get error in the process
-  getArticlesForDate = (date) ->
+  getArticlesForDate = (date, next = ->) ->
     logger.info "getting articles for the date: ", date
-    articlesDef = Q.defer()
-    linksPromise = getLinksForDate(date)
-    linksPromise.then (links) ->
+    getLinksForDate(date, (err, links) ->
       logger.debug "got #{links.length} links for #{date}"
       articles = []
-      async.eachLimit(links, 5, (link, cb) ->
-        archive = Q.defer()
-        getContentFromLink(link).then( (content) ->
+      async.eachLimit(links, 10, (link, cb) ->
+        getContentFromLink(link, (err, content) ->
+          return cb(err) if err
           articles.push(content)
           cb()
-        , cb)
+        )
       , (err) ->
-        if err
-          articlesDef.reject(err)
-        else
-          articlesDef.resolve(articles)
+        if err then next(err) else next(null, articles)
       )
-    linksPromise.fail (err) -> articlesDef.reject(err)
-
-    return articlesDef.promise
+    )
+    return
 
 
   return {
