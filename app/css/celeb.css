@@ -1,0 +1,21 @@
+svg {
+  margin: 10px 0 0 50px;
+  border: 1px solid black;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 0.5px;
+}

@@ -16,6 +16,9 @@ Dao = ->
 
   db = null
   lastError = null
+  peopleColl = null
+  articleColl = null
+
   error=
     notConnected: new Error "not connected"
 
@@ -37,6 +40,8 @@ Dao = ->
         return next(err)
       logger.debug "successfully connected to the database"
       db = _db
+      peopleColl = db.collection 'people'
+      articleColl = db.collection 'parsedArticle'
       return next(null, db)
     )
 
@@ -94,7 +99,17 @@ Dao = ->
   # a few hundred small object, no memory issue here)
   ################################################################################  
   findPeople = (cb = ->) ->
-    db.collection('people').find().toArray cb
+    peopleColl.find().toArray cb
+
+  
+  ################################################################################  
+  # returns a stream of item with the given name
+  ################################################################################  
+  findArticlesForPerson = (personId, cb = ->) ->
+    # logger.debug "objectId: #{BSON.ObjectID
+    articleColl.find({personId: new BSON.ObjectID(personId)}).stream()
+
+    
 
   upsertResults = (toSave, cb=->) ->
     collection = db.collection('parsedArticle')
@@ -114,6 +129,7 @@ Dao = ->
     findPeople: findPeople
     upsertResults: upsertResults
     syncDb: syncDb
+    findArticlesForPerson: findArticlesForPerson
   }
 
 
