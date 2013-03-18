@@ -109,6 +109,14 @@ Dao = ->
     # logger.debug "objectId: #{BSON.ObjectID
     articleColl.find({personId: new BSON.ObjectID(personId)}).stream()
 
+  countArticle = (personId, cb = ->) ->
+    if typeof personId is BSON.ObjectID
+      id = personId
+    else
+      id = BSON.ObjectID(personId)
+    articleColl.find({personId: id}).count(cb)
+      
+
     
 
   upsertResults = (toSave, cb=->) ->
@@ -130,6 +138,7 @@ Dao = ->
     upsertResults: upsertResults
     syncDb: syncDb
     findArticlesForPerson: findArticlesForPerson
+    countArticle: countArticle
   }
 
 

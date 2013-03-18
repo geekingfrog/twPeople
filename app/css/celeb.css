@@ -1,6 +1,25 @@
+/* Bootstrap customization part */
+.mainWrapper {
+  width: 1300px;
+  margin: 10px auto 0 auto;
+  padding: 10px;
+}
+
+#leftMenu {
+  float: left;
+  width: 200px;
+  margin: 10px;
+  display: block;
+}
+
+
+
+/* graphs part */
 svg {
   margin: 10px 0 0 50px;
   border: 1px solid black;
+  position: fixed;
+  top: 10px;
 }
 
 .axis path,
@@ -16,6 +35,7 @@ svg {
 
 .line {
   fill: none;
-  stroke: steelblue;
+  /* stroke: steelblue; */
   stroke-width: 0.5px;
 }
+

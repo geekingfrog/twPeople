@@ -2,6 +2,8 @@ express = require "express"
 dao = new (require "../mongo/dao")()
 logger = require "../logConfig"
 sys = require "sys"
+async = require 'async'
+xtend = require 'xtend'
 
 dao.connect (err, _db) ->
   if err
@@ -39,7 +41,14 @@ app.get "/stats/person/", (req, res) ->
     if err
       return sendServerError(err)
     else
-      res.send(people)
+      async.map(people, (person, cb) ->
+        dao.countArticle(person._id.toString(), (err, count) ->
+          return cb err, xtend(person, {count: count})
+        )
+      , (err, peopleCount) ->
+        return sendServerError(res, err) if err
+        return res.send(peopleCount)
+      )
 
 app.get "/stats/person/:id", (req, res) ->
   id = req.params.id
