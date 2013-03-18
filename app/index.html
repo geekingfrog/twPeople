@@ -16,14 +16,16 @@
       <div class='clearfix' />
       </div>
       <script id="leftMenuH" type="text/x-handlebars-template">
-        <ol>
-        {{#each people}}
-        <li id="{{_id}}">
-        <input type="checkbox">
-        {{name}} / {{english}} ({{count}})</li>
-        </li>
-        {{/each}}
-      </ol>
+        <ul>
+          {{#each fields}}
+          <h4 data-fieldId="{{field}}">{{field}}</h4>
+          {{#each people}}
+          <li data-personId="{{_id}}">
+          <input type="checkbox"> {{name}}/{{english}} ({{count}})
+          </li>
+          {{/each}}
+          {{/each}}
+        </ul>
       </script>
       <!-- <script src="js/colorbrewer.js" type="text/javascript" charset="utf&#45;8"></script> -->
       <script src="js/jquery-1.9.1.js" type="text/javascript" charset="utf-8"></script>

@@ -26,6 +26,14 @@ root.drawer = do ->
     .x((d) -> x(d.date))
     .y((d) -> y(d.count))
 
+  svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".7em")
+    .style("text-anchor", "end")
+    .text("#articles / month")
+
+
 
   graphData = []
   addData = ({person, raw, rank}, format='%Y%m') ->
@@ -160,9 +168,6 @@ root.drawer = do ->
 
 
 
-
-
-
 $(document).ready ->
   # $.getJSON("stats/person/513c363cf21fa12c11000063").done (data) ->
   #   console.log data
@@ -178,12 +183,22 @@ $(document).ready ->
     people = allPeople.slice(0,20)
     console.log "people at the beginning: ", people
 
+    fields = ({field: f, people: p} for f, p of people.reduce(
+      (acc, curr) ->
+        curr.field.forEach (f) -> if acc[f] then acc[f].push curr else acc[f] = [curr]
+        return acc
+    , {})).map (el) ->
+      el.people.sort (a,b) -> b.count - a.count
+      return el
+
+    console.log "fields: ", fields
+
     source = $("#leftMenuH").html()
     template = Handlebars.compile(source)
-    $("#leftMenu").append(template({people: people}))
+    $("#leftMenu").append(template({fields: fields}))
 
     $("[type=checkbox]").each (el) -> $(this).click (el,ev) ->
-      id = $(this).closest('li').attr('id')
+      id = $(this).closest('li').attr('data-personId')
       if $(this).is(':checked')
         $.getJSON("stats/person/#{id}/month").done (raw) ->
           rank = people.length
@@ -202,6 +217,7 @@ $(document).ready ->
       else
         drawer.removeData(id)
 
+    $("#leftMenu [type=checkbox]:first").click()
 
 
 
