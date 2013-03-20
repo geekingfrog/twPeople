@@ -5,6 +5,8 @@ sys = require "sys"
 async = require 'async'
 xtend = require 'xtend'
 
+port = process.env.VCAP_APP_PORT or 4444
+
 dao.connect (err, _db) ->
   if err
     return logger.error "couldn't connect to the DB #{err}"
@@ -26,15 +28,19 @@ sendServerError = (res, err) ->
 # app.use("/js",  express.directory(__dirname+'/js'))
 app.use("/js",  express.static(__dirname+'/js'))
 app.use("/css",  express.static(__dirname+'/css'))
+app.use("/", express.static(__dirname))
 
-app.get "/", (req, res) ->
-  console.log 'sending file ?'
-  res.sendfile "#{__dirname}/index.html", (err) ->
-    if err
-      console.log "error: ", err
-    else
-      console.log "got file"
-  return
+# app.get "/", (req, res) ->
+#   res.sendfile "#{__dirname}/index.html", (err) ->
+#     if err
+#       console.log "error: ", err
+#     else
+#       console.log "got file"
+#   return
+
+app.get "/test", (req,res) ->
+  return res.send "pong #{port}"
+
 
 app.get "/stats/person/", (req, res) ->
   dao.findPeople (err, people) ->
@@ -86,6 +92,6 @@ app.get "/stats/person/:id/month", (req, res) ->
 
 
 
-app.listen 4444
-logger.info "listening on port 4444"
+app.listen port
+logger.info "listening on port port"
 
