@@ -11,29 +11,28 @@
     <div class="mainWrapper">
 
       <div id="leftMenu"></div>
-      <div id="svgPlaceholder">
-      </div>
-      <div class='clearfix' />
-      </div>
-      <script id="leftMenuH" type="text/x-handlebars-template">
-        <ul>
-          {{#each fields}}
-          <h4 data-fieldId="{{field}}">{{field}}</h4>
-          {{#each people}}
-          <li data-personId="{{_id}}">
-          <input type="checkbox"> {{name}}/{{english}} ({{count}})
-          </li>
-          {{/each}}
-          {{/each}}
-        </ul>
-      </script>
-      <!-- <script src="js/colorbrewer.js" type="text/javascript" charset="utf&#45;8"></script> -->
-      <script src="js/jquery-1.9.1.js" type="text/javascript" charset="utf-8"></script>
-<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
-      <!-- <script src="js/bootstrap.min.js" type="text/javascript" charset="utf&#45;8"></script> -->
-      <script src="js/handlebars.js" type="text/javascript" charset="utf-8"></script>
-      <script src="js/d3.v3.js" type="text/javascript" charset="utf-8"></script>
-      <!-- <script src="js/graphs.js" type="text/javascript" charset="utf&#45;8"></script> -->
-      <script src="js/celeb.js" type="text/javascript" charset="utf-8"></script>
-    </body>
-  </html>
+      <div id="svgPlaceholder"> </div>
+      <div class='clearfix' ></div>
+    </div>
+    <script id="leftMenuH" type="text/x-handlebars-template">
+      {{#each fields}}
+      <h4 data-fieldId="{{field}}">{{field}}</h4>
+      <ul>
+        {{#each people}}
+        <li data-personId="{{_id}}">
+        <input type="checkbox"> {{name}}/{{english}} ({{count}})
+        </li>
+        {{/each}}
+      </ul>
+      {{/each}}
+    </script>
+    <!-- <script src="js/colorbrewer.js" type="text/javascript" charset="utf&#45;8"></script> -->
+    <script src="js/jquery-1.9.1.js" type="text/javascript" charset="utf-8"></script>
+    <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+    <!-- <script src="js/bootstrap.min.js" type="text/javascript" charset="utf&#45;8"></script> -->
+    <script src="js/handlebars.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/d3.v3.js" type="text/javascript" charset="utf-8"></script>
+    <!-- <script src="js/graphs.js" type="text/javascript" charset="utf&#45;8"></script> -->
+    <script src="js/celeb.js" type="text/javascript" charset="utf-8"></script>
+  </body>
+</html>
