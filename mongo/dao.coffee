@@ -52,11 +52,12 @@ Dao = ->
 
   # get the list of people from the file twPeople.coffee
   # and make sure the collection 'people' has the same content (or more)
+  # And because count() is super slow, update a collection which keep track
+  # of the total of article for a given person and a given hostname
   # doesn't return anything
-  syncDb = (cb = ->) ->
-    logger.info "syncing db"
+  
+  syncPeople = (cb) ->
     dbPeople = db.collection 'people'
-
     insertMissing = (missing, insertCb) ->
       dbPeople.insert(missing, {w:1}, (err, res) ->
         if err
@@ -79,7 +80,7 @@ Dao = ->
     , (err, res) ->
       filtered = res.filter (el) -> el isnt null
       if filtered.length is 0
-        logger.info "db already up to date"
+        logger.info "db people already up to date"
         return cb()
       insertMissing(filtered, (err) ->
         if err
@@ -89,7 +90,26 @@ Dao = ->
         cb(err)
       )
     )
+  #end syncPeople
+  
+  syncCount = (cb) ->
+    db.collection('people').find().toArray (err, people) ->
+      articles = db.collection "parsedArticle"
+      articleCount = db.collection 'articleCount'
+      async.each(people, (p, next) ->
+        articles.find({personId: p._id}).count (err, c) ->
+          el = {personId: p._id, hostname: "www.appledaily.com.tw", count: c}
+          articleCount.update({personId: el.personId, hostname: el.hostname }
+          , {$set: el}, {w:1, upsert: true}, next)
+      , (err) -> cb(err))
 
+
+  syncDb = (cb = ->) ->
+    logger.info "syncing db"
+    async.series [syncPeople, syncCount], (err) ->
+      if err
+        logger.error "Error while syncing: #{sys.inspect err}"
+      return cb(err)
     return
   #end syncDb
 
@@ -110,14 +130,14 @@ Dao = ->
     articleColl.find({personId: new BSON.ObjectID(personId)}).stream()
 
   countArticle = (personId, cb = ->) ->
+    articleCount = db.collection 'articleCount'
     if typeof personId is BSON.ObjectID
       id = personId
     else
       id = BSON.ObjectID(personId)
-    articleColl.find({personId: id}).count(cb)
-      
+    articleCount.findOne({personId: id}, (err, {count}) -> cb(err,count))
 
-    
+      
 
   upsertResults = (toSave, cb=->) ->
     collection = db.collection('parsedArticle')

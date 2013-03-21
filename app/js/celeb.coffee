@@ -178,6 +178,7 @@ $(document).ready ->
 
   mapPeople = {}
   $.getJSON("stats/person/").done (allPeople) ->
+    root.p = allPeople
 
     allPeople.sort (a,b) -> b.count - a.count
     people = allPeople.slice(0,20)
@@ -217,7 +218,7 @@ $(document).ready ->
       else
         drawer.removeData(id)
 
-    $("#leftMenu [type=checkbox]:first").click()
+    # $("#leftMenu [type=checkbox]:first").click()
 
 
 
