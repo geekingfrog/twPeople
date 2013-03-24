@@ -11,17 +11,34 @@
     <div class="mainWrapper">
 
       <div id="leftMenu"></div>
-      <div id="svgPlaceholder">
+      <div class="contentWrapper">
+        <h2>News coverage of famous people of taiwan in the appledaily</h2>
+        
+        <div id="svgPlaceholder"> </div>
       </div>
       <div class='clearfix' ></div>
     </div>
+
+    <div class="clearfix">
+      
+    </div>
+
+    <footer>
+    <div class="container">
+      <ul>
+        <li> Made by a <a href="http://www.geekingfrog.com">geekingfrog</a> </li>
+        <li class="github"><a href="https://github.com/geekingfrog/twPeople">Code</a> on github</li>
+      <div class="clearfix"> </div>
+      </ul>
+    </div>
+    </footer>
     <script id="leftMenuH" type="text/x-handlebars-template">
       {{#each fields}}
-      <h4 data-fieldId="{{field}}">{{field}}</h4>
+      <h4 data-fieldId="{{field}}" class="{{field}}">{{field}}</h4>
       <ul>
         {{#each people}}
-        <li data-personId="{{_id}}">
-        <input type="checkbox"> {{name}}/{{english}} ({{count}})
+        <li data-personId="{{_id}}" >
+        {{name}}/{{english}} ({{count}})
         </li>
         {{/each}}
       </ul>

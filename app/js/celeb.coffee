@@ -23,7 +23,6 @@ root.drawer = do ->
   fieldColor = d3.scale.category10().domain([0,10])
   root.brighterScale = d3.scale.linear().domain([1,10]).range([0,4])
   colorScale = (fieldId, rankInField) ->
-    console.log "color for fieldId=#{fieldId} and rank in field: #{rankInField}"
     return d3.rgb(fieldColor(fieldId-1)).brighter(brighterScale(rankInField)).toString()
 
   xAxis = d3.svg.axis().scale(x).orient('bottom')
@@ -64,8 +63,6 @@ root.drawer = do ->
         .attr("dy", ".7em")
         .style("text-anchor", "end")
         .text("#articles / month")
-    # else
-    #   svg.selectAll("text.yLegend").remove()
 
     if graphData.length
       xRanges = graphData.map((person) -> d3.extent(person.raw, (d) -> d.date))
@@ -98,16 +95,10 @@ root.drawer = do ->
       svg.append("g").attr("class", "y axis")
         .call(yAxis)
 
-    console.log 'graphData: ', graphData
 
     people = svg.selectAll(".people")
       .data(graphData, (d) -> d.rank)
 
-    console.log "update: ", people
-    console.log "enter: ", people.enter()
-    console.log "exit: ", people.exit()
-
-    # console.log "updated lines: ", people.selectAll(".line")
     people.selectAll(".line")
       .transition()
       .duration(500)
@@ -123,8 +114,7 @@ root.drawer = do ->
 
     enteringLines = enteringGroup.append("path")
       .attr("class", "line")
-      # .attr("stroke", (d, i) -> console.log "d: ",d ; colorScale(d.fieldId, d.rankInField))
-      .attr("stroke", (d, i) -> console.log "d: ",d ; colorScale(d.fieldId, d.rankInField))
+      .attr("stroke", (d, i) -> colorScale(d.fieldId, d.rankInField))
 
 
     people.exit()
@@ -151,12 +141,11 @@ root.drawer = do ->
     drawTextForEnteringLine = () ->
       enteringGroup.append("text")
         .datum( (d) -> {
-          name: d.person.name+' '+d.person.english
+          name: d.person.name
           value: d.raw[d.raw.length-1]
           color: colorScale(d.fieldId, d.rankInField)
           })
         .attr("transform", (d) -> "translate(+#{x(d.value.date)},+#{y(d.value.count)})")
-        # .attr("dy", "-.35em")
         .style("fill", (d) -> d.color)
         .text( (d) -> d.name)
   #end draw line
@@ -170,20 +159,15 @@ root.drawer = do ->
 
 
 $(document).ready ->
-  # $.getJSON("stats/person/513c363cf21fa12c11000063").done (data) ->
-  #   console.log data
-  #   drawer.drawLine(data, '%Y%m%d')
-
-  # $.getJSON("stats/person/513c363cf21fa12c11000063/month").done (data) ->
-  #   drawer.drawLine(data, '%Y%m')
 
   mapPeople = {}
-  $.getJSON("stats/person/").done (allPeople) ->
+  getPeopleDef = $.getJSON("stats/person/")
+  people = []
+  getPeopleDef.then (allPeople) ->
     root.p = allPeople
 
     allPeople.sort (a,b) -> b.count - a.count
     people = allPeople.slice(0,20)
-    console.log "people at the beginning: ", people
 
     fields = ({field: f, people: p} for f, p of people.reduce(
       (acc, curr) ->
@@ -193,45 +177,41 @@ $(document).ready ->
       el.people.sort (a,b) -> b.count - a.count
       return el
 
-    console.log "fields: ", fields
-    # fields.forEach (el, i) ->
-    #   el.people.forEach (p, i2) -> p.fieldId = i; p.rankInField = i2 #for colors
-
-    # console.log "after transform, people: ", people
 
     source = $("#leftMenuH").html()
     template = Handlebars.compile(source)
     $("#leftMenu").append(template({fields: fields}))
 
-    $("[type=checkbox]").each (el) -> $(this).click (el,ev) ->
-      parentLi = $(this).parent()
-      id = parentLi.attr('data-personId')
-      rankInField = 1+parentLi.prevAll('li').length
-      fieldId = 1+parentLi.parent().prevAll('ul').length
-      
+    $("#leftMenu li").each bindClickHandler
 
-      if $(this).is(':checked')
-        $.getJSON("stats/person/#{id}/month").done (raw) ->
-          rank = people.length
-          people.some (el, index) ->
-            if el._id == id
-              rank = index+1
-              return true
-            return false
+  bindClickHandler = -> $(this).click (ev) ->
+    $(this).toggleClass('active')
+    id = $(this).attr('data-personId')
+    rankInField = 1+$(this).prevAll('li').length
+    fieldId = 1+$(this).parent().prevAll('ul').length
 
-          data =
-            person: people[rank-1]
-            raw: raw.slice(0, -1) #remove the last month (incomplete)
-            rank: rank
-            fieldId: fieldId
-            rankInField: rankInField
+    if $(this).hasClass('active')
+      $.getJSON("stats/person/#{id}/month").done (raw) ->
+        rank = people.length
+        people.some (el, index) ->
+          if el._id == id
+            rank = index+1
+            return true
+          return false
 
-          drawer.addData data
-      else
-        drawer.removeData(id)
+        data =
+          person: people[rank-1]
+          raw: raw.slice(0, -1) #remove the last month (incomplete)
+          rank: rank
+          fieldId: fieldId
+          rankInField: rankInField
 
-    # $("#leftMenu [type=checkbox]:first").click()
+        drawer.addData data
+    else
+      drawer.removeData(id)
 
+
+  getPeopleDef.then -> $("#leftMenu li:first").click()
 
 
 
