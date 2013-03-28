@@ -1,82 +1,26 @@
-.clearfix {
-  clear: both;
+
+.row h2 {
+  text-align: center;
 }
 
-body {
-  margin: 0px;
-}
-
-.mainWrapper {
-  width: 1300px;
-  margin: 0 auto;
-  padding: 10px;
-}
-
-#leftMenu {
-  float: left;
-  /* width: 200px; */
-  margin: 10px;
-  display: block;
-}
-
-#leftMenu h4 {
-  margin: 5px;
-  padding: 3 3 3 10px;
-}
-
-#leftMenu ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 10px 0;
-}
-
-#leftMenu li {
-  display: block;
-  width: 200px;
-  padding: 8px;
-  border: 1px solid black;
-  margin: 1px;
-  cursor: pointer;
-  text-align: left;
-  vertical-align: middle;
-  /* background-color: #ecf0f1; */
-
-  /* box-shadow:   0 3px 5px -6px rgba(0,0,0,255); */
-  box-shadow: inset 0 -1px 2px rgba(127,127,127,127);
-}
-
-#leftMenu li:hover, #leftMenu li.active {
-  /* background-color: #bdc3c7; */
-  background-color: #ecf0f1;
-}
-
-#leftMenu li.active {
-  -moz-box-shadow:    inset 0 1px 2px rgba(127,127,127,127);
-  -webkit-box-shadow: inset 0 1px 2px rgba(127,127,127,127);
-  box-shadow:         inset 0 1px 2px rgba(127,127,127,127);
-}
-
-
-.contentWrapper {
-  display: block;
-  float: left;
+.svgContainer {
+  display: inline-block;
   position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 10px 0;
 }
 
-.contentWrapper h2 {
-  margin: 0 0 10px 10px;
+.svgContainer .dummy {
+  margin-top: 75%;
 }
 
-/* graphs part */
-#svgPlaceholder {
-  position: fixed;
-}
-
-svg {
-  /* margin: 10px 0 0 50px; */
-  /* padding: 10px; */
-  border: 1px solid black;
-  top: 10px;
+.svgContainer svg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .axis path,
@@ -95,11 +39,31 @@ svg {
   stroke-width: 0.8px;
 }
 
+
+#menu .content {
+  padding: 0;
+}
+
+#menu .content .button {
+  margin: 0 0 5px 0;
+}
+
+.section-container .section .title {
+  text-align: center;
+}
+
+/* fix the color of active sections */
+.section-container .section.active .title {
+  color: white;
+}
+
+
 /* footer */
 footer {
   width: 100%;
   height: 50px;
   clear: both;
+  /* position: fixed; */
   bottom: 0;
   text-align: center;
   padding: 10px;

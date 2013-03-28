@@ -32,6 +32,10 @@ sendServerError = (res, err) ->
 # app.use express.directory('js')
 # app.use("/js",  express.directory(__dirname+'/js'))
 app.use("/js",  express.static(__dirname+'/js'))
+app.use("/foundation/js",  express.static(__dirname+'/foundation/js'))
+app.use("/foundation/js/vendor",  express.static(__dirname+'/foundation/js/vendor'))
+app.use("/foundation/css",  express.static(__dirname+'/foundation/css'))
+
 app.use("/css",  express.static(__dirname+'/css'))
 app.use("/", express.static(__dirname))
 

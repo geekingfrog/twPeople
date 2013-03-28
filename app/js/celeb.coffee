@@ -1,23 +1,35 @@
+$(document).foundation()
+
+
 root = exports ? this
-root.drawer = do ->
+$(document).ready ->
+# root.drawer = do ->
+  # svgWidth = $('svg').width()
+  # svgHeight = $('svg').height()
+  # svgHeight = svgWidth*.75
+  width = 720
+  height = width*.618
   margin =
-    top: 20
-    right: 20
-    bottom: 30
-    left: 50
-
-  width = 900 - margin.right - margin.left
-  height = 500 - margin.top - margin.bottom
-
-  root.svg = svg = d3.select("#svgPlaceholder").append("svg")
-          .attr("width", width + margin.right + margin.left)
-          .attr("height", height + margin.top + margin.bottom)
-          .append("g")
-          .attr("transform", "translate(#{margin.left},#{margin.top})")
+    top: height*.05
+    right: width*.03
+    bottom: height*.10
+    left: width*.05
 
 
-  x = d3.time.scale().range([0, width-90])
-  y = d3.scale.linear().range([height, 0])
+  console.log "svg width: #{width} svg height: #{height}"
+
+  root.svg = svg = d3.select("svg")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    # .attr("height", "100%")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "0 0 #{width} #{height}")
+    .append("g")
+    .attr("transform", "translate(#{margin.left},#{margin.top})")
+
+
+  root.x = x = d3.time.scale().range([0, width*.87])
+  root.y = y = d3.scale.linear().range([height, 0])
 
   colorScale = d3.scale.category20b().domain([0,20])
   fieldColor = d3.scale.category10().domain([0,10])
@@ -55,6 +67,7 @@ root.drawer = do ->
   drawLines = ->
     # svg.select("*").remove()
 
+    console.log "graphData: ",graphData
     if graphData.length and !svg.select("text.yLegend")[0][0]
       svg.append("text")
         .attr("class", "yLegend")
@@ -151,7 +164,7 @@ root.drawer = do ->
   #end draw line
         
 
-  return {
+  root.drawer = {
     addData: addData
     removeData: removeData
   }
@@ -178,19 +191,20 @@ $(document).ready ->
       return el
 
 
-    source = $("#leftMenuH").html()
+    source = $("#menuTemplate").html()
     template = Handlebars.compile(source)
-    $("#leftMenu").append(template({fields: fields}))
+    $("#menu").append(template({fields: fields}))
 
-    $("#leftMenu li").each bindClickHandler
+    $("#menu .content .button").each bindClickHandler
 
   bindClickHandler = -> $(this).click (ev) ->
-    $(this).toggleClass('active')
+    $(this).toggleClass('primary inverse')
     id = $(this).attr('data-personId')
-    rankInField = 1+$(this).prevAll('li').length
-    fieldId = 1+$(this).parent().prevAll('ul').length
+    rankInField = 1+$(this).prevAll('.button').length
+    fieldId = 1+$(this).closest('.section').prevAll('.section').length
+    console.log "id=#{id} -- rankInField=#{rankInField} -- fieldId=#{fieldId}"
 
-    if $(this).hasClass('active')
+    if $(this).hasClass('inverse')
       $.getJSON("stats/person/#{id}/month").done (raw) ->
         rank = people.length
         people.some (el, index) ->
@@ -211,7 +225,7 @@ $(document).ready ->
       drawer.removeData(id)
 
 
-  getPeopleDef.then -> $("#leftMenu li:first").click()
+  getPeopleDef.then -> $(".content button:first").click()
 
 
 
