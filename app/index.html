@@ -2,7 +2,7 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <!-- <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" /> -->
-    <link rel="stylesheet" href="./css/celeb.css" type="text/css" />
+    <link rel="stylesheet" href="./css/prod.css" type="text/css" />
 
     <title>People of Taiwan in the appledaily</title>
 
@@ -20,19 +20,34 @@
      </script>
   </head>
   <body>
+    <div class="row">
+      <h2>News coverage of famous people of taiwan in the appledaily</h2>
+    </div>
+    <div class="row">
+      <div class="large-9 push-3 columns">
+        <div class="svgContainer">
+          <div class="dummy"> </div>
+          <svg></svg>
+        </div>
+      </div>
+
+      <div id="menu" class="large-3 pull-9 columns">
+        
+      </div>
+      
+    </div>
     <div class="mainWrapper">
 
       <div id="leftMenu"></div>
       <div class="contentWrapper">
-        <h2>News coverage of famous people of taiwan in the appledaily</h2>
-
-        <div id="svgPlaceholder"> </div>
+        
+        <!-- <div id="svgPlaceholder"><svg></svg></div> -->
       </div>
       <div class='clearfix' ></div>
     </div>
 
     <div class="clearfix">
-
+      
     </div>
 
     <footer>
@@ -40,26 +55,36 @@
       <ul>
         <li> Made by a <a href="http://www.geekingfrog.com">geekingfrog</a> </li>
         <li class="github"><a href="https://github.com/geekingfrog/twPeople">Code</a> on github</li>
-        <div class="clearfix"> </div>
+      <div class="clearfix"> </div>
       </ul>
     </div>
     </footer>
-    <script id="leftMenuH" type="text/x-handlebars-template">
-      {{#each fields}}
-      <h4 data-fieldId="{{field}}" class="{{field}}">{{field}}</h4>
-      <ul>
-        {{#each people}}
-        <li data-personId="{{_id}}" >
-        {{name}}/{{english}} ({{count}})
-        </li>
+    <script id="menuTemplate" type="text/x-handlebars-template">
+      <div class="section-container accordion" data-section>
+
+        {{#each fields}}
+        <section class="section">
+        <p class="title" data-fieldId="{{field}}">{{field}}</p>
+        <div class="content">
+          <div> </div>
+          {{#each people}}
+          <button type="button" class="button primary small expand" data-personId="{{_id}}">
+            {{name}}/{{english}} ({{count}})
+          </button>
+          {{/each}}
+          <div> </div>
+          
+        </div>
+          
+        </section>
         {{/each}}
-      </ul>
-      {{/each}}
+      </div>
     </script>
-    <!-- <script src="js/colorbrewer.js" type="text/javascript" charset="utf&#45;8"></script> -->
-    <!-- <script src="js/jquery&#45;1.9.1.js" type="text/javascript" charset="utf&#45;8"></script> -->
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <!-- <script src="js/bootstrap.min.js" type="text/javascript" charset="utf&#45;8"></script> -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/4.0.9/js/foundation.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0-rc.3/handlebars.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.0.8/d3.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/prod.js" type="text/javascript" charset="utf-8"></script>
    </body>
  </html>

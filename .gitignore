@@ -1,6 +1,7 @@
 *.js
 node_modules/
 *.log
+prod.css
 
 #only useful for me
 deploy.sh
